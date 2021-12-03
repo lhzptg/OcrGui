@@ -2,9 +2,9 @@ from qtpy import QtCore
 from qtpy import QtGui
 from qtpy import QtWidgets
 
-from labelme import QT5
-from labelme.shape import Shape
-import labelme.utils
+from .. import QT5
+from ..shape import Shape
+from ..utils import *
 
 
 # TODO(unknown):
@@ -677,7 +677,7 @@ class Canvas(QtWidgets.QWidget):
         # m = (p1-p2).manhattanLength()
         # print "d %.2f, m %d, %.2f" % (d, m, d - m)
         # divide by scale to allow more precision when zoomed in
-        return labelme.utils.distance(p1 - p2) < (self.epsilon / self.scale)
+        return distance(p1 - p2) < (self.epsilon / self.scale)#labelme.utils.distance(p1 - p2) < (self.epsilon / self.scale)
 
     def intersectionPoint(self, p1, p2):
         # Cycle through each image edge in clockwise fashion,
@@ -731,7 +731,7 @@ class Canvas(QtWidgets.QWidget):
                 x = x1 + ua * (x2 - x1)
                 y = y1 + ua * (y2 - y1)
                 m = QtCore.QPoint((x3 + x4) / 2, (y3 + y4) / 2)
-                d = labelme.utils.distance(m - QtCore.QPoint(x2, y2))
+                d = distance(m - QtCore.QPoint(x2, y2))#labelme.utils.distance(m - QtCore.QPoint(x2, y2))
                 yield d, i, (x, y)
 
     # These two, along with a call to adjustSize are required for the

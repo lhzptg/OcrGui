@@ -5,8 +5,8 @@ from qtpy import QtCore
 from qtpy import QtGui
 from qtpy import QtWidgets
 
-from labelme.logger import logger
-import labelme.utils
+from ..logger import logger
+import guiocr.utils as utils
 
 
 QT5 = QT_VERSION[0] == "5"

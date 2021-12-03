@@ -1,16 +1,30 @@
-# This is a sample Python script.
+import argparse
+import codecs
+import logging
+import os
+import os.path as osp
+import sys
+from guiocr import __appname__
+from guiocr.app import MainWindow
+from guiocr.utils import newIcon
+from PyQt5 import QtCore, QtGui, QtWidgets
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+def main():
+    QtCore.QCoreApplication.setOrganizationDomain("casia")
+    QtCore.QCoreApplication.setApplicationName(__appname__)
+    app = QtWidgets.QApplication(sys.argv)
+    app.setApplicationName(__appname__)
+    # app.setWindowIcon(newIcon("icon"))
+    win = MainWindow()
 
+    win.show()
+    win.raise_()
+    sys.exit(app.exec_())
 
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    main()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/

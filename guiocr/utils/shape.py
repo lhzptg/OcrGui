@@ -1,11 +1,18 @@
 import math
 import uuid
-
+import sys
+import datetime
 import numpy as np
 import PIL.Image
 import PIL.ImageDraw
-
-from labelme.logger import logger
+from ..logger import logger
+# import logging
+# sys.path.append(".")
+#
+# dateStr=datetime.datetime.now().strftime('%Y-%m-%d')
+# logging.basicConfig(level= logging.INFO,filename = f"{dateStr}.log",format = '%(asctime)s|%(name)s|%(levelname)s|%(message)s')
+# logger= logging.getLogger(__name__)
+#from labelme.logger import logger
 
 
 def polygons_to_mask(img_shape, polygons, shape_type=None):
