@@ -1,9 +1,9 @@
 import re
 
-from qtpy import QT_VERSION
-from qtpy import QtCore
-from qtpy import QtGui
-from qtpy import QtWidgets
+from PyQt5.Qt import PYQT_VERSION_STR as QT_VERSION
+from PyQt5 import QtCore
+from PyQt5 import QtGui
+from PyQt5 import QtWidgets
 
 from ..logger import logger
 import guiocr.utils as utils

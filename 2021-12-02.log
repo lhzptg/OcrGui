@@ -1,4 +1,0 @@
-2021-12-02 17:34:06,612|labelme.utils.sandbox|INFO|Csv header: ['id', 'e_name', 'c_name', 'attr_1', 'attr_2', 'attr_3', 'attr_4', 'attr_5', 'attr_6', 'attr_7', 'item_type', 'sub_item_type', 'meaning2（自我像）', 'meaning2（去除自我像和最重要沙具）', '尺寸', '比例'].
-2021-12-02 17:34:06,618|labelme.utils.sandbox|INFO|Get 334 sandbox object names in total.
-2021-12-02 17:34:49,556|labelme.utils.sandbox|INFO|Csv header: ['id', 'e_name', 'c_name', 'attr_1', 'attr_2', 'attr_3', 'attr_4', 'attr_5', 'attr_6', 'attr_7', 'item_type', 'sub_item_type', 'meaning2（自我像）', 'meaning2（去除自我像和最重要沙具）', '尺寸', '比例'].
-2021-12-02 17:34:49,564|labelme.utils.sandbox|INFO|Get 334 sandbox object names in total.

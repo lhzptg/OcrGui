@@ -1,7 +1,7 @@
 import os.path as osp
 import shutil
 import yaml
-from labelme.logger import logger
+from ..logger import logger
 
 
 

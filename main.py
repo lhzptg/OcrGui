@@ -10,7 +10,6 @@ from guiocr.utils import newIcon
 from PyQt5 import QtCore, QtGui, QtWidgets
 
 
-
 def main():
     QtCore.QCoreApplication.setOrganizationDomain("casia")
     QtCore.QCoreApplication.setApplicationName(__appname__)
@@ -18,6 +17,7 @@ def main():
     app.setApplicationName(__appname__)
     # app.setWindowIcon(newIcon("icon"))
     win = MainWindow()
+    # win = createWindow(win,'blue')
 
     win.show()
     win.raise_()
