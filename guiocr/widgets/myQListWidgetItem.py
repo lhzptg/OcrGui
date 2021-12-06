@@ -1,4 +1,4 @@
-from guiocr.widgets.list_item_ui import Ui_Form
+from .list_item_ui import Ui_Form
 from PyQt5.QtWidgets import QWidget,QListWidgetItem
 
 # 自定义的item 继承自QListWidgetItem

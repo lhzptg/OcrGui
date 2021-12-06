@@ -19,8 +19,9 @@ import os
 import io
 import json
 import functools
+import imgviz
 
-
+LABEL_COLORMAP = imgviz.label_colormap(value=200)
 here = os.path.dirname(os.path.abspath(__file__))
 
 
@@ -76,7 +77,7 @@ class MainWindow(QMainWindow):
         self._ui.btnOpenDir.clicked.connect(self.openDirDialog)
         self._ui.btnNext.clicked.connect(self.openNextImg)
         self._ui.btnPrev.clicked.connect(self.openPrevImg)
-        self._ui.btnStartProcess(self.startProcess)
+        self._ui.btnStartProcess.clicked.connect(self.startProcess)
         # self._ui.btnAddShape.clicked.connect(self.newShape)
         # self._ui.btnEditShape.clicked.connect(self.setEditMode)
 
@@ -525,7 +526,7 @@ class MainWindow(QMainWindow):
 
 
     def getIcon(self,iconName:str):
-        self.icons_dir = os.path.join(here, "../icons")
+        self.icons_dir = os.path.join(here, "./icons")
         path = os.path.join(":/", self.icons_dir, f"{iconName}.png")
         return QtGui.QIcon(path)
 
@@ -744,20 +745,20 @@ class MainWindow(QMainWindow):
             self.errorMessage("提示","请先选择任务配置")
             return
 
-        selectId = self.checkBtnGroup.checkedId()
-        if selectId == 0:
+        selectBtnName = self.checkBtnGroup.checkedButton().objectName()
+        if selectBtnName == "checkBox_ocr":
             # 文本检测+识别
             self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
             self.add_ocr_results(self.result)
-        elif selectId == 1:
+        elif selectBtnName == "checkBox_det":
             # 文本检测
             self.result = ocr(self.filename, cls=False, lan=self._ui.comboBoxLanguage.currentText())
             self.add_ocr_results(self.result)
-        elif selectId == 2:
+        elif selectBtnName == "checkBox_recog":
             # TODO:文本识别
             self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
             self.add_ocr_results(self.result)
-        elif selectId == 3:
+        elif selectBtnName == "checkBox_layoutparser":
             self.result = structure_analysis(self.filename,self.output_dir)
             self.add_structure_results(self.result)
 
@@ -765,6 +766,26 @@ class MainWindow(QMainWindow):
     def add_ocr_results(self,result):
         boxes = [line[0] for line in result]
         txts = [line[1][0] for line in result]
+        shapes = []
+        for i in range(len(boxes)):
+            x1 = min(boxes[i][0][0],boxes[i][1][0])
+            x2 = max(boxes[i][0][0], boxes[i][1][0])
+            y1 = min(boxes[i][0][1],boxes[i][1][1])
+            y2 = max(boxes[i][0][1], boxes[i][1][1])
+            label = f"({x1},{y1}),({x2},{y2})"
+            shape = Shape(
+                label=label,
+                shape_type="rectangle",
+                group_id=i,
+            )
+            shape.addPoint(QtCore.QPointF(x1, y1))
+            shape.addPoint(QtCore.QPointF(x2, y2))
+            shapes.append(shape)
+            # shape.close()
+            txt = txts[i]
+            self.addLabel(shape)
+            self.addResultItem(shape,txt)
+        self.loadShapes(shapes)
 
     def add_structure_results(self,result):
         # TODO: 版面分析
@@ -784,9 +805,7 @@ class MainWindow(QMainWindow):
 
         with io.BytesIO() as f:
             ext = os.path.splitext(filename)[1].lower()
-            if PY2 and QT4:
-                format = "PNG"
-            elif ext in [".jpg", ".jpeg"]:
+            if ext in [".jpg", ".jpeg"]:
                 format = "JPEG"
             else:
                 format = "PNG"
@@ -938,7 +957,7 @@ class MainWindow(QMainWindow):
         self.canvas.resetState()
 
     def _update_shape_color(self, shape):
-        r, g, b = self._get_rgb_by_label(shape.label)
+        r, g, b = self._get_rgb_by_label(shape.label,shape.group_id)
         shape.line_color = QtGui.QColor(r, g, b)
         shape.vertex_fill_color = QtGui.QColor(r, g, b)
         shape.hvertex_fill_color = QtGui.QColor(255, 255, 255)
@@ -946,10 +965,11 @@ class MainWindow(QMainWindow):
         shape.select_line_color = QtGui.QColor(255, 255, 255)
         shape.select_fill_color = QtGui.QColor(r, g, b, 155)
 
-    def _get_rgb_by_label(self, label):
+    def _get_rgb_by_label(self, label,group_id):
         if self._config["shape_color"] == "auto":
-            item = self.uniqLabelList.findItemsByLabel(label)[0]
-            label_id = self.uniqLabelList.indexFromItem(item).row() + 1
+            label_id = group_id
+            # item = self.uniqLabelList.findItemsByLabel(label)[0]
+            # label_id = self.uniqLabelList.indexFromItem(item).row() + 1
             label_id += self._config["shift_auto_shape_color"]
             return LABEL_COLORMAP[label_id % len(LABEL_COLORMAP)]
         elif (
@@ -1002,6 +1022,15 @@ class MainWindow(QMainWindow):
                 text, *shape.fill_color.getRgb()[:3]
             )
         )
+
+    def loadShapes(self, shapes, replace=True):
+        self._noSelectionSlot = True
+        # for shape in shapes:
+        #     self.addLabel(shape)
+        self.labelList.clearSelection()
+        self._noSelectionSlot = False
+        self.canvas.loadShapes(shapes, replace=replace)
+
     def scrollRequest(self, delta, orientation):
         units = -delta * 0.1  # natural scroll
         bar = self.scrollBars[orientation]
@@ -1241,7 +1270,7 @@ class MainWindow(QMainWindow):
 
     def onMoveShape(self):
         for shape in self.canvas.selectedShapes:
-            rgb = self._get_rgb_by_label(shape.label)
+            rgb = self._get_rgb_by_label(shape.label,shape.group_id)
             # self.uniqLabelList.setItemLabel(item, shape.label, rgb)
             item = self.labelList.findItemByShape(shape)
             x1 = int(shape.points[0].x())
