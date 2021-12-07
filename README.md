@@ -1,38 +1,24 @@
 # OCR-GUI-demo
 
 #### 介绍
-一个OCR小工具，含GUI界面。
+图像文字识别OCR工具v1.0，含GUI界面。
 
 #### 软件架构
 - GUI 参考 labelme
 - OCR 基于PaddleOCR实现
 
 
-#### 安装教程
-
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
 #### 使用说明
+运行以下命令，即可启动软件。
+```shell
+python main.py
+```
+使用流程：
+打开图片→选择语言模型（默认ch中文）→选择文本检测+识别→点击开始，检测完的文本区域会自动画框，并在右侧识别结果列表中显示。
 
-1.  xxxx
-2.  xxxx
-3.  xxxx
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
-#### 特性
-
-1.  使用 Readme\_XXX.md 来支持不同的语言，例如 Readme\_en.md, Readme\_zh.md
-2.  Gitee 官方博客 [blog.gitee.com](https://blog.gitee.com)
-3.  你可以 [https://gitee.com/explore](https://gitee.com/explore) 这个地址来了解 Gitee 上的优秀开源项目
-4.  [GVP](https://gitee.com/gvp) 全称是 Gitee 最有价值开源项目，是综合评定出的优秀开源项目
-5.  Gitee 官方提供的使用手册 [https://gitee.com/help](https://gitee.com/help)
-6.  Gitee 封面人物是一档用来展示 Gitee 会员风采的栏目 [https://gitee.com/gitee-stars/](https://gitee.com/gitee-stars/)
+#### TODO List
+- 增加自主框选
+- 增加版面分析
+- 增加自动翻译
+- 增加程序打包
+- 增加不同格式保存

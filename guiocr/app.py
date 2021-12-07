@@ -3,14 +3,6 @@ from PyQt5 import QtCore
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QMainWindow,QListWidget,QListWidgetItem,QAbstractItemView,QWidget,QApplication,QButtonGroup,QPushButton,QTextEdit,QRadioButton,QCheckBox,QLabel,QSpacerItem,QMessageBox,QGroupBox,QVBoxLayout,QHBoxLayout
 from PyQt5.QtCore import QObject,QThread,QSettings,pyqtSignal,pyqtSlot,Qt
-from guiocr import __appname__
-from guiocr import PY2
-from guiocr import QT5
-from guiocr import utils
-from guiocr.config import get_config
-from guiocr.widgets.main_window_ui import Ui_MainWindow
-from guiocr.widgets import *
-from guiocr.utils import *
 from .logger import logger
 from .shape import Shape
 import PIL.Image
@@ -20,6 +12,15 @@ import io
 import json
 import functools
 import imgviz
+from guiocr import __appname__
+from guiocr import PY2
+from guiocr import QT5
+from guiocr import utils
+from guiocr.config import get_config
+from guiocr.widgets.main_window_ui import Ui_MainWindow
+from guiocr.widgets import *
+from guiocr.utils import *
+
 
 LABEL_COLORMAP = imgviz.label_colormap(value=200)
 here = os.path.dirname(os.path.abspath(__file__))
@@ -51,8 +52,10 @@ class MainWindow(QMainWindow):
         self.brightnessContrast_values = {}
         self.filename = ""
         self.output_dir = "./output"
+        self.lastOpenDir = here
         self.imageList = []
         self.result = []
+        self.suffix = ".json"
         self.scroll_values = {
             Qt.Horizontal: {},
             Qt.Vertical: {},
@@ -67,10 +70,15 @@ class MainWindow(QMainWindow):
         self.checkBtnGroup.setExclusive(True)
 
         # 添加按钮icon
-        self._ui.btnOpenImg.setIcon(self.getIcon("circle_add_black"))
+        self._ui.btnOpenImg.setIcon(self.getIcon("open_img_grey"))
+        self._ui.btnOpenDir.setIcon(self.getIcon("folder_open_grey"))
+        self._ui.btnNext.setIcon(self.getIcon("next_grey"))
+        self._ui.btnPrev.setIcon(self.getIcon("before_grey"))
         self._ui.btnAddShape.setIcon(self.getIcon("add_grey"))
         self._ui.btnEditShape.setIcon(self.getIcon("edit_grey"))
         self._ui.btnSaveAll.setIcon(self.getIcon("done_grey"))
+        self._ui.btnBrightness.setIcon(self.getIcon("brightness_grey"))
+        self._ui.btnStartProcess.setIcon(self.getIcon("play_white"))
 
         # 按钮响应函数
         self._ui.btnOpenImg.clicked.connect(self.openFile)
@@ -78,12 +86,13 @@ class MainWindow(QMainWindow):
         self._ui.btnNext.clicked.connect(self.openNextImg)
         self._ui.btnPrev.clicked.connect(self.openPrevImg)
         self._ui.btnStartProcess.clicked.connect(self.startProcess)
+        self._ui.btnCopyAll.clicked.connect(self.copyToClipboard)
+        self._ui.btnSaveAll.clicked.connect(self.saveToFile)
         # self._ui.btnAddShape.clicked.connect(self.newShape)
         # self._ui.btnEditShape.clicked.connect(self.setEditMode)
-
-        self._ui.listWidgetResults.itemClicked.connect(self.onItemResultClicked)
+        self._ui.listWidgetResults.itemSelectionChanged.connect(self.onItemResultClicked)
         self._ui.listWidgetResults.clear()
-        self.addResultItem(shape=None,txt="test3")
+        # self.addResultItem(shape=None,txt="test3")
 
 
         # 控件布局
@@ -564,21 +573,25 @@ class MainWindow(QMainWindow):
 
         newItem = QListWidgetItem(txt,self._ui.listWidgetResults)
         newItem.setCheckState(Qt.Checked)
-        newItem.setFlags(Qt.ItemIsEditable | Qt.ItemIsEnabled)
+        newItem.setFlags(Qt.ItemIsEditable | Qt.ItemIsSelectable | Qt.ItemIsTristate | Qt.ItemIsEnabled)
         self._ui.listWidgetResults.addItem(newItem)
 
-    def onItemResultClicked(self,item):
+    def onItemResultClicked(self):
         """
         listWidgetResults选中一条记录时，激活对应的区域
-        Args:
-            item:
 
         Returns:
 
         """
-        for shape in self.canvas.shapes:
-            if item.shape.label == shape.label:
-                self.canvas.selectShapes([shape])
+        for id in self._ui.listWidgetResults.selectedIndexes():
+            # 选取labelList中对应idx的item
+            idx = int(id.row())
+            item = self.labelList[idx]
+            self.labelList.selectItem(item)
+            self.labelList.scrollToItem(item)
+            # for shape in self.canvas.shapes:
+            #     if item.shape.label == shape.label:
+            #         self.canvas.selectShapes([shape])
 
     def openPrevImg(self, _value=False):
         keep_prev = self._config["keep_prev"]
@@ -611,8 +624,8 @@ class MainWindow(QMainWindow):
         ):
             self._config["keep_prev"] = True
 
-        if not self.mayContinue():
-            return
+        # if not self.mayContinue():
+        #     return
 
         if len(self.imageList) <= 0:
             return
@@ -745,6 +758,7 @@ class MainWindow(QMainWindow):
             self.errorMessage("提示","请先选择任务配置")
             return
 
+        # TODO:多线程处理+进度条
         selectBtnName = self.checkBtnGroup.checkedButton().objectName()
         if selectBtnName == "checkBox_ocr":
             # 文本检测+识别
@@ -759,8 +773,12 @@ class MainWindow(QMainWindow):
             self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
             self.add_ocr_results(self.result)
         elif selectBtnName == "checkBox_layoutparser":
-            self.result = structure_analysis(self.filename,self.output_dir)
-            self.add_structure_results(self.result)
+            self.errorMessage("提示","当前版本暂不支持")
+            # self.result = structure_analysis(self.filename,self.output_dir)
+            # self.add_structure_results(self.result)
+
+        # 显示结果页
+        self._ui.tabWidgetResult.setCurrentIndex(1)
 
 
     def add_ocr_results(self,result):
@@ -768,10 +786,10 @@ class MainWindow(QMainWindow):
         txts = [line[1][0] for line in result]
         shapes = []
         for i in range(len(boxes)):
-            x1 = min(boxes[i][0][0],boxes[i][1][0])
-            x2 = max(boxes[i][0][0], boxes[i][1][0])
-            y1 = min(boxes[i][0][1],boxes[i][1][1])
-            y2 = max(boxes[i][0][1], boxes[i][1][1])
+            x1 = boxes[i][0][0]#min(boxes[i][0][0],boxes[i][1][0])
+            y1 = boxes[i][0][1]#min(boxes[i][0][1],boxes[i][1][1])
+            x2 = boxes[i][2][0]#max(boxes[i][0][0], boxes[i][1][0])
+            y2 = boxes[i][2][1]#max(boxes[i][0][1], boxes[i][1][1])
             label = f"({x1},{y1}),({x2},{y2})"
             shape = Shape(
                 label=label,
@@ -792,6 +810,23 @@ class MainWindow(QMainWindow):
         for line in result:
             line.pop('img')
             print(line)
+
+    def copyToClipboard(self):
+        contents = []
+        for id in self._ui.listWidgetResults.selectedIndexes():#for item in self._ui.listWidgetResults.selectedItems():
+            # 选取labelList中对应idx的item
+            idx = int(id.row())
+            content = self._ui.listWidgetResults.item(idx).text()# item = self.labelList[idx]
+            contents.append(content)
+        txt = "\n".join(contents)
+        self._ui.statusbar.setStatusTip(f"Copy {len(contents)} results to clipboard!")
+        clipboard = QApplication.clipboard()
+        clipboard.setText(txt)
+
+    def saveToFile(self):
+        # TODO:保存至json、txt等
+        pass
+
 
     def load_image_file(self,filename):
         try:
@@ -830,7 +865,7 @@ class MainWindow(QMainWindow):
 
     def saveFileDialog(self):
         caption = self.tr("%s - Choose File") % __appname__
-        filters = self.tr("Label files (*%s)") % LabelFile.suffix
+        filters = self.tr("Label files (*%s)") % self.suffix
         if self.output_dir:
             dlg = QtWidgets.QFileDialog(
                 self, caption, self.output_dir, filters
@@ -839,24 +874,24 @@ class MainWindow(QMainWindow):
             dlg = QtWidgets.QFileDialog(
                 self, caption, self.currentPath(), filters
             )
-        dlg.setDefaultSuffix(LabelFile.suffix[1:])
+        dlg.setDefaultSuffix(self.suffix[1:])
         dlg.setAcceptMode(QtWidgets.QFileDialog.AcceptSave)
         dlg.setOption(QtWidgets.QFileDialog.DontConfirmOverwrite, False)
         dlg.setOption(QtWidgets.QFileDialog.DontUseNativeDialog, False)
-        basename = osp.basename(osp.splitext(self.filename)[0])
+        basename = os.path.basename(os.path.splitext(self.filename)[0])
         if self.output_dir:
-            default_labelfile_name = osp.join(
-                self.output_dir, basename + LabelFile.suffix
+            default_labelfile_name = os.path.join(
+                self.output_dir, basename + self.suffix
             )
         else:
-            default_labelfile_name = osp.join(
-                self.currentPath(), basename + LabelFile.suffix
+            default_labelfile_name = os.path.join(
+                self.currentPath(), basename + self.suffix
             )
         filename = dlg.getSaveFileName(
             self,
             self.tr("Choose File"),
             default_labelfile_name,
-            self.tr("Label files (*%s)") % LabelFile.suffix,
+            self.tr("Label files (*%s)") % self.suffix,
         )
         if isinstance(filename, tuple):
             filename, _ = filename
@@ -874,7 +909,7 @@ class MainWindow(QMainWindow):
     def changeOutputDirDialog(self, _value=False):
         default_output_dir = self.output_dir
         if default_output_dir is None and self.filename:
-            default_output_dir = osp.dirname(self.filename)
+            default_output_dir = os.path.dirname(self.filename)
         if default_output_dir is None:
             default_output_dir = self.currentPath()
 
@@ -1117,7 +1152,7 @@ class MainWindow(QMainWindow):
 
     def onNewBrightnessContrast(self, qimage):
         self.canvas.loadPixmap(
-            QPixmap.fromImage(qimage), clear_shapes=False
+            QtGui.QPixmap.fromImage(qimage), clear_shapes=False
         )
 
     def brightnessContrast(self, value):
@@ -1297,9 +1332,6 @@ class MainWindow(QMainWindow):
             item.setCheckState(Qt.Checked if value else Qt.Unchecked)
 
     def openDirDialog(self, _value=False, dirpath=None):
-        if not self.mayContinue():
-            return
-
         defaultOpenDirPath = dirpath if dirpath else "."
         if self.lastOpenDir and os.path.exists(self.lastOpenDir):
             defaultOpenDirPath = self.lastOpenDir
@@ -1323,12 +1355,14 @@ class MainWindow(QMainWindow):
         self.actions.openNextImg.setEnabled(True)
         self.actions.openPrevImg.setEnabled(True)
 
-        if not self.mayContinue() or not dirpath:
-            return
+        # if not self.mayContinue() or not dirpath:
+        #     return
 
         self.lastOpenDir = dirpath
         self.filename = None
-        self.fileListWidget.clear()
+        self.labelList.clear()
+        self._ui.listWidgetResults.clear()
+        # self.fileListWidget.clear()
         for filename in self.scanAllImages(dirpath):
             if pattern and pattern not in filename:
                 continue

@@ -4,7 +4,7 @@ import math
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 
-import utils
+from guiocr import utils
 
 
 # TODO(unknown):

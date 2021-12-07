@@ -42,15 +42,90 @@
           <number>15</number>
          </property>
          <item>
+          <widget class="QLabel" name="label_3">
+           <property name="text">
+            <string>1. 选择语言模型：</string>
+           </property>
+           <property name="textFormat">
+            <enum>Qt::MarkdownText</enum>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+           <property name="wordWrap">
+            <bool>false</bool>
+           </property>
+           <property name="margin">
+            <number>0</number>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QComboBox" name="comboBoxLanguage">
+           <property name="currentText">
+            <string>ch</string>
+           </property>
+           <property name="placeholderText">
+            <string/>
+           </property>
+           <property name="frame">
+            <bool>false</bool>
+           </property>
+           <item>
+            <property name="text">
+             <string>ch</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>en</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>fr</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>german</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>korean</string>
+            </property>
+           </item>
+           <item>
+            <property name="text">
+             <string>japan</string>
+            </property>
+           </item>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>2. 功能选型：</string>
+           </property>
+           <property name="alignment">
+            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+           </property>
+          </widget>
+         </item>
+         <item>
           <widget class="QCheckBox" name="checkBox_ocr">
            <property name="minimumSize">
             <size>
-             <width>180</width>
+             <width>0</width>
              <height>0</height>
             </size>
            </property>
            <property name="text">
             <string>文本检测+识别</string>
+           </property>
+           <property name="checked">
+            <bool>true</bool>
            </property>
           </widget>
          </item>
@@ -73,45 +148,8 @@
            <property name="text">
             <string>版面分析</string>
            </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_3">
-           <property name="text">
-            <string>语言模型</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="comboBoxLanguage">
-           <property name="currentText">
-            <string>ch</string>
-           </property>
-           <property name="placeholderText">
-            <string/>
-           </property>
-           <property name="frame">
+           <property name="checkable">
             <bool>true</bool>
-           </property>
-           <item>
-            <property name="text">
-             <string>ch</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>en</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLabel" name="label_2">
-           <property name="text">
-            <string/>
            </property>
           </widget>
          </item>
@@ -127,19 +165,40 @@
             <font>
              <family>Microsoft YaHei UI</family>
              <pointsize>-1</pointsize>
-             <weight>75</weight>
+             <weight>50</weight>
              <italic>false</italic>
-             <bold>true</bold>
+             <bold>false</bold>
              <underline>false</underline>
+             <strikeout>false</strikeout>
             </font>
            </property>
            <property name="autoFillBackground">
             <bool>false</bool>
            </property>
            <property name="styleSheet">
-            <string notr="true">background-color: rgb(0, 174, 237);
-color: rgb(255, 255, 255);
-font:bold 16px;
+            <string notr="true">QPushButton {
+background-color: rgb(0, 160, 230) ;
+border-radius: 5px;
+height: 28;
+text-align: center;
+text-decoration: none;
+font-size: 16px bold;
+margin: 2px 2px;
+color: white;
+}
+
+
+QPushButton:hover {
+background-color: white;
+border: 2px solid rgb(0, 160, 230);
+color: black
+}
+
+
+
+QPushButton:pressed {
+background-color: rgba(0, 0, 255, 40);
+}
 </string>
            </property>
            <property name="text">
@@ -156,9 +215,6 @@ font:bold 16px;
          </item>
         </layout>
        </item>
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_5"/>
-       </item>
       </layout>
      </widget>
     </item>
@@ -170,11 +226,29 @@ font:bold 16px;
      </layout>
     </item>
     <item>
-     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="2,8,3">
+     <layout class="QHBoxLayout" name="horizontalLayout_2" stretch="0,8,3">
       <item>
-       <layout class="QVBoxLayout" name="verticalLayout_2">
+       <layout class="QVBoxLayout" name="verticalLayout_5">
         <item>
          <widget class="QPushButton" name="btnOpenImg">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>16777215</width>
+            <height>16777215</height>
+           </size>
+          </property>
           <property name="text">
            <string>打开图片</string>
           </property>
@@ -188,16 +262,9 @@ font:bold 16px;
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btnPrev">
+         <widget class="QPushButton" name="btnEditShape">
           <property name="text">
-           <string>上一个</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnNext">
-          <property name="text">
-           <string>下一个</string>
+           <string>编辑区域</string>
           </property>
          </widget>
         </item>
@@ -209,9 +276,16 @@ font:bold 16px;
          </widget>
         </item>
         <item>
-         <widget class="QPushButton" name="btnEditShape">
+         <widget class="QPushButton" name="btnNext">
           <property name="text">
-           <string>编辑区域</string>
+           <string>下一个</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btnPrev">
+          <property name="text">
+           <string>上一个</string>
           </property>
          </widget>
         </item>
@@ -229,28 +303,11 @@ font:bold 16px;
           </property>
           <property name="sizeHint" stdset="0">
            <size>
-            <width>10</width>
-            <height>10</height>
+            <width>20</width>
+            <height>40</height>
            </size>
           </property>
          </spacer>
-        </item>
-        <item>
-         <widget class="QScrollArea" name="scrollAreaLabellist">
-          <property name="widgetResizable">
-           <bool>true</bool>
-          </property>
-          <widget class="QWidget" name="scrollAreaWidgetContents_3">
-           <property name="geometry">
-            <rect>
-             <x>0</x>
-             <y>0</y>
-             <width>164</width>
-             <height>106</height>
-            </rect>
-           </property>
-          </widget>
-         </widget>
         </item>
        </layout>
       </item>
@@ -264,8 +321,8 @@ font:bold 16px;
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>671</width>
-           <height>497</height>
+           <width>741</width>
+           <height>528</height>
           </rect>
          </property>
         </widget>
@@ -290,35 +347,73 @@ font:bold 16px;
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="listWidgetResults">
-          <property name="selectionRectVisible">
-           <bool>false</bool>
+         <widget class="QTabWidget" name="tabWidgetResult">
+          <property name="currentIndex">
+           <number>1</number>
           </property>
-          <item>
-           <property name="text">
-            <string>测试1</string>
-           </property>
-           <property name="checkState">
-            <enum>Checked</enum>
-           </property>
-           <property name="flags">
-            <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
-           </property>
-          </item>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnCopyAll">
-          <property name="text">
-           <string>复制到剪贴板</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QPushButton" name="btnSaveAll">
-          <property name="text">
-           <string>保存</string>
-          </property>
+          <widget class="QWidget" name="tab">
+           <attribute name="title">
+            <string>区域</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_7">
+            <item>
+             <widget class="QScrollArea" name="scrollAreaLabellist">
+              <property name="widgetResizable">
+               <bool>true</bool>
+              </property>
+              <widget class="QWidget" name="scrollAreaWidgetContents_3">
+               <property name="geometry">
+                <rect>
+                 <x>0</x>
+                 <y>0</y>
+                 <width>251</width>
+                 <height>451</height>
+                </rect>
+               </property>
+              </widget>
+             </widget>
+            </item>
+           </layout>
+          </widget>
+          <widget class="QWidget" name="tab_2">
+           <attribute name="title">
+            <string>文本</string>
+           </attribute>
+           <layout class="QVBoxLayout" name="verticalLayout_6">
+            <item>
+             <widget class="QListWidget" name="listWidgetResults">
+              <property name="selectionRectVisible">
+               <bool>false</bool>
+              </property>
+              <item>
+               <property name="text">
+                <string>测试1</string>
+               </property>
+               <property name="checkState">
+                <enum>Checked</enum>
+               </property>
+               <property name="flags">
+                <set>ItemIsSelectable|ItemIsEditable|ItemIsDragEnabled|ItemIsUserCheckable|ItemIsEnabled</set>
+               </property>
+              </item>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnCopyAll">
+              <property name="text">
+               <string>复制到剪贴板</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="btnSaveAll">
+              <property name="text">
+               <string>保存</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </widget>
          </widget>
         </item>
        </layout>
@@ -333,7 +428,7 @@ font:bold 16px;
      <x>0</x>
      <y>0</y>
      <width>1131</width>
-     <height>29</height>
+     <height>25</height>
     </rect>
    </property>
   </widget>
