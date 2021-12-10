@@ -61,6 +61,13 @@ class MainWindow(QMainWindow):
             Qt.Vertical: {},
         }  # key=filename, value=scroll_value
 
+        # 线程
+        self.workThread = QThread()
+        self.processor = OCR_qt()
+        self.processor.moveToThread(self.workThread)
+        self.processor.sendResult.connect(self.onReceiveResults)
+        self.workThread.started.connect(self.processor.start)
+
         # 单选按钮组
         self.checkBtnGroup = QButtonGroup(self)
         self.checkBtnGroup.addButton(self._ui.checkBox_ocr)
@@ -600,8 +607,8 @@ class MainWindow(QMainWindow):
         ):
             self._config["keep_prev"] = True
 
-        if not self.mayContinue():
-            return
+        # if not self.mayContinue():
+        #     return
 
         if len(self.imageList) <= 0:
             return
@@ -762,24 +769,36 @@ class MainWindow(QMainWindow):
         selectBtnName = self.checkBtnGroup.checkedButton().objectName()
         if selectBtnName == "checkBox_ocr":
             # 文本检测+识别
-            self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
-            self.add_ocr_results(self.result)
+            self.processor.set_task(self.filename,cls=True,lan=self._ui.comboBoxLanguage.currentText())
+            # self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
+            # self.add_ocr_results(self.result)
         elif selectBtnName == "checkBox_det":
-            # 文本检测
-            self.result = ocr(self.filename, cls=False, lan=self._ui.comboBoxLanguage.currentText())
-            self.add_ocr_results(self.result)
+            # TODO:文本检测
+            self.processor.set_task(self.filename, cls=False, lan=self._ui.comboBoxLanguage.currentText())
+            # self.result = ocr(self.filename, cls=False, lan=self._ui.comboBoxLanguage.currentText())
+            # self.add_ocr_results(self.result)
         elif selectBtnName == "checkBox_recog":
             # TODO:文本识别
-            self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
-            self.add_ocr_results(self.result)
+            self.errorMessage("提示","当前版本暂不支持")
+            # self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
+            # self.add_ocr_results(self.result)
         elif selectBtnName == "checkBox_layoutparser":
             self.errorMessage("提示","当前版本暂不支持")
             # self.result = structure_analysis(self.filename,self.output_dir)
             # self.add_structure_results(self.result)
 
+        self.workThread.start()
+
         # 显示结果页
         self._ui.tabWidgetResult.setCurrentIndex(1)
 
+    def onReceiveResults(self,result):
+        self.workThread.quit()
+
+        # 检测+识别结果
+        self.add_ocr_results(result)
+
+        # TODO：其他分析结果
 
     def add_ocr_results(self,result):
         boxes = [line[0] for line in result]
@@ -1366,6 +1385,7 @@ class MainWindow(QMainWindow):
         for filename in self.scanAllImages(dirpath):
             if pattern and pattern not in filename:
                 continue
+            self.imageList.append(filename)
         self.openNextImg(load=load)
 
     def scanAllImages(self, folderPath):
