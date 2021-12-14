@@ -85,7 +85,7 @@ class MainWindow(QMainWindow):
         self._ui.btnEditShape.setIcon(self.getIcon("edit_grey"))
         self._ui.btnSaveAll.setIcon(self.getIcon("done_grey"))
         self._ui.btnBrightness.setIcon(self.getIcon("brightness_grey"))
-        self._ui.btnStartProcess.setIcon(self.getIcon("play_white"))
+        # self._ui.btnStartProcess.setIcon(self.getIcon("play_white"))
 
         # 按钮响应函数
         self._ui.btnOpenImg.clicked.connect(self.openFile)
@@ -97,7 +97,8 @@ class MainWindow(QMainWindow):
         self._ui.btnSaveAll.clicked.connect(self.saveToFile)
         # self._ui.btnAddShape.clicked.connect(self.newShape)
         # self._ui.btnEditShape.clicked.connect(self.setEditMode)
-        self._ui.listWidgetResults.itemSelectionChanged.connect(self.onItemResultClicked)
+        self._ui.listWidgetResults.itemClicked.connect(self.onItemResultClicked)
+        # self._ui.listWidgetResults.itemSelectionChanged.connect(self.onItemResultClicked)
         self._ui.listWidgetResults.clear()
         # self.addResultItem(shape=None,txt="test3")
 
@@ -111,7 +112,7 @@ class MainWindow(QMainWindow):
         # self.labelList.itemDoubleClicked.connect(self.editLabel)
         self.labelList.itemChanged.connect(self.labelItemChanged)
         self.labelList.itemDropped.connect(self.labelOrderChanged)
-        self.labelList.setSelectionMode(QAbstractItemView.SingleSelection)  # 设置单选
+        self.labelList.setSelectionMode(QAbstractItemView.MultiSelection)  # 设置单选or多选
 
         """缩放控件"""
         self.zoomWidget = ZoomWidget()
@@ -562,7 +563,7 @@ class MainWindow(QMainWindow):
 
     def addRecentFile(self, filename):
         if filename in self.recentFiles:
-            self.recentFiles.remaddResultItemove(filename)
+            self.recentFiles.remove(filename)
         elif len(self.recentFiles) >= self.maxRecent:
             self.recentFiles.pop()
         self.recentFiles.insert(0, filename)
@@ -580,7 +581,7 @@ class MainWindow(QMainWindow):
 
         newItem = QListWidgetItem(txt,self._ui.listWidgetResults)
         newItem.setCheckState(Qt.Checked)
-        newItem.setFlags(Qt.ItemIsEditable | Qt.ItemIsSelectable | Qt.ItemIsTristate | Qt.ItemIsEnabled)
+        newItem.setFlags(Qt.ItemIsEditable | Qt.ItemIsSelectable | Qt.ItemIsUserCheckable | Qt.ItemIsEnabled)
         self._ui.listWidgetResults.addItem(newItem)
 
     def onItemResultClicked(self):
@@ -596,9 +597,55 @@ class MainWindow(QMainWindow):
             item = self.labelList[idx]
             self.labelList.selectItem(item)
             self.labelList.scrollToItem(item)
+            # self.labelSelectionChanged()
             # for shape in self.canvas.shapes:
             #     if item.shape.label == shape.label:
             #         self.canvas.selectShapes([shape])
+
+    # React to labelList select signals.
+    def labelSelectionChanged(self):
+        if self._noSelectionSlot:
+            return
+        if self.canvas.editing():
+            selected_shapes = []
+            for item in self.labelList.selectedItems():
+                selected_shapes.append(item.shape())
+                # 选中listWidgetResults对应的item
+                index = self.labelList.model().indexFromItem(item)
+                self._ui.listWidgetResults.selectionModel().select(index,QtCore.QItemSelectionModel.Select)
+                self._ui.listWidgetResults.scrollTo(index)
+            if selected_shapes:
+                self.canvas.selectShapes(selected_shapes)
+            else:
+                self.canvas.deSelectShape()
+
+    # React to canvas shape select signals.
+    def shapeSelectionChanged(self, selected_shapes):
+        self._noSelectionSlot = True
+        for shape in self.canvas.selectedShapes:
+            shape.selected = False
+        self.labelList.clearSelection()
+        self.canvas.selectedShapes = selected_shapes
+        for shape in self.canvas.selectedShapes:
+            shape.selected = True
+            item = self.labelList.findItemByShape(shape)
+            self.labelList.selectItem(item)
+            self.labelList.scrollToItem(item)
+
+        # 选中listWidgetResults对应的文本列表项
+        for id in self.labelList.selectedIndexes():
+            idx = int(id.row())
+            item = self._ui.listWidgetResults.item(idx)
+            # item.setSelected(True)
+            self._ui.listWidgetResults.selectionModel().select(id,QtCore.QItemSelectionModel.Select)
+            self._ui.listWidgetResults.scrollToItem(item)
+
+        self._noSelectionSlot = False
+        n_selected = len(selected_shapes)
+        self.actions.delete.setEnabled(n_selected)
+        # self.actions.duplicate.setEnabled(n_selected)
+        # self.actions.copy.setEnabled(n_selected)
+        # self.actions.edit.setEnabled(n_selected == 1)
 
     def openPrevImg(self, _value=False):
         keep_prev = self._config["keep_prev"]
@@ -693,6 +740,9 @@ class MainWindow(QMainWindow):
         )
         self.imageData = self.load_image_file(filename)
         image = QtGui.QImage.fromData(self.imageData)
+        self._ui.btnStartProcess.setText("开始")
+        self._ui.listWidgetResults.clear()
+        self.labelList.clear()
 
         if image.isNull():
             formats = [
@@ -770,6 +820,7 @@ class MainWindow(QMainWindow):
         if selectBtnName == "checkBox_ocr":
             # 文本检测+识别
             self.processor.set_task(self.filename,cls=True,lan=self._ui.comboBoxLanguage.currentText())
+            self._ui.btnStartProcess.setText("解析中...")
             # self.result = ocr(self.filename, cls=True, lan=self._ui.comboBoxLanguage.currentText())
             # self.add_ocr_results(self.result)
         elif selectBtnName == "checkBox_det":
@@ -798,6 +849,7 @@ class MainWindow(QMainWindow):
         # 检测+识别结果
         self.add_ocr_results(result)
 
+        self._ui.btnStartProcess.setText("解析完成")
         # TODO：其他分析结果
 
     def add_ocr_results(self,result):
@@ -832,7 +884,7 @@ class MainWindow(QMainWindow):
 
     def copyToClipboard(self):
         contents = []
-        for id in self._ui.listWidgetResults.selectedIndexes():#for item in self._ui.listWidgetResults.selectedItems():
+        for id in self._ui.listWidgetResults.selectionModel().selectedRows():#selectedIndexes():#for item in self._ui.listWidgetResults.selectedItems():
             # 选取labelList中对应idx的item
             idx = int(id.row())
             content = self._ui.listWidgetResults.item(idx).text()# item = self.labelList[idx]
@@ -1041,24 +1093,7 @@ class MainWindow(QMainWindow):
             item = self.labelList.findItemByShape(shape)
             self.labelList.removeItem(item)
 
-    # React to canvas signals.
-    def shapeSelectionChanged(self, selected_shapes):
-        self._noSelectionSlot = True
-        for shape in self.canvas.selectedShapes:
-            shape.selected = False
-        self.labelList.clearSelection()
-        self.canvas.selectedShapes = selected_shapes
-        for shape in self.canvas.selectedShapes:
-            shape.selected = True
-            item = self.labelList.findItemByShape(shape)
-            self.labelList.selectItem(item)
-            self.labelList.scrollToItem(item)
-        self._noSelectionSlot = False
-        n_selected = len(selected_shapes)
-        self.actions.delete.setEnabled(n_selected)
-        # self.actions.duplicate.setEnabled(n_selected)
-        # self.actions.copy.setEnabled(n_selected)
-        # self.actions.edit.setEnabled(n_selected == 1)
+
 
     def addLabel(self, shape):
         if shape.group_id is None:
@@ -1199,17 +1234,7 @@ class MainWindow(QMainWindow):
         self.canvas.adjustSize()
         self.canvas.update()
 
-    def labelSelectionChanged(self):
-        if self._noSelectionSlot:
-            return
-        if self.canvas.editing():
-            selected_shapes = []
-            for item in self.labelList.selectedItems():
-                selected_shapes.append(item.shape())
-            if selected_shapes:
-                self.canvas.selectShapes(selected_shapes)
-            else:
-                self.canvas.deSelectShape()
+
 
     def labelItemChanged(self, item):
         shape = item.shape()
