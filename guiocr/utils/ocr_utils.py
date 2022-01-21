@@ -39,10 +39,11 @@ class OCR_qt(QObject):
         # 用于线程启动
         self.ocr(self.img_path,self.use_angle,self.cls,self.default_lan)
 
-    def ocr(self,img_path='./imgs/11.jpg',use_angle=True,cls=True, lan="ch"):
+    def ocr(self,img_path='./imgs/11.jpg',use_angle=True,cls=True, lan="ch", use_gpu=0):
         self.img_path = img_path
         self.default_lan = lan
         ocr = PaddleOCR(use_angle_cls=use_angle,
+                        use_gpu=use_gpu,
                         lang=lan)  # need to run only once to download and load model into memory
         result = ocr.ocr(img_path, cls=cls)
         self.result = result
